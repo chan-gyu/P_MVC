@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd">
+	
+	<!-- Root Context: defines shared resources visible to all other web components -->
+	<!-- DB관련 bean객체 등록하기 -->
+	<!-- 1. JDBC연결을 위한 DataSource클래스 등록 -> BasicDataSource
+		 2. 쿼리문을 직관적으로 볼수있는 log4jdbc 등록 -> datasource
+		 3. mybatis에서 사용하는 SqlSessionFactory클래스 등록 -> SqlSessionFactoryBean
+		 4. mybatis사용을 위한 SqlSessionTemplate클래스 등록 -> SqlSessionTemplate(==SqlSession)
+	-->
+	<!-- DB Connection -->
+	<bean id="realDatasource" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
+		<property name="driverClassName" value="oracle.jdbc.driver.OracleDriver"/>
+		<property name="url" value=""/>
+		<property name="username" value=""/>
+		<property name="password" value=""/>
+	</bean>
+	
+	<bean id="datasource" class="net.sf.log4jdbc.Log4jdbcProxyDataSource">
+		<constructor-arg ref="realDatasource"/>
+		<property name="logFormatter">
+			<bean class="net.sf.log4jdbc.tools.Log4JdbcCustomFormatter">
+				<property name="loggingType" value="MULTI_LINE"/>
+				<property name="sqlPrefix" value="[SQL]"/>
+			</bean>
+		</property>
+	</bean>
+	
+	<bean id="sqlSessionFactoryBean" class="org.mybatis.spring.SqlSessionFactoryBean">
+		<property name="dataSource" ref="datasource"/>
+		<property name="configLocation" value="classpath:mybatis-config.xml"/>
+		<property name="mapperLocations" value="classpath*:mapper/**/*.xml"/>
+	</bean>
+	
+	<bean id="sqlSession" class="org.mybatis.spring.SqlSessionTemplate">
+		<constructor-arg index="0" ref="sqlSessionFactoryBean"/>
+	</bean>
+		
+</beans>
